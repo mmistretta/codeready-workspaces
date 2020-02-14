@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2018-2019-2020 Red Hat, Inc.
+# Copyright (c) 2018-2020 Red Hat, Inc.
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
 # which is available at https://www.eclipse.org/legal/epl-2.0/
@@ -12,7 +12,7 @@
 
 # Builder: check meta.yamls and create index.json
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/ubi8-minimal
-FROM registry.access.redhat.com/ubi8-minimal:8.1-328 as builder
+FROM registry.access.redhat.com/ubi8-minimal:8.1-398 as builder
 USER 0
 
 ################# 
@@ -75,11 +75,11 @@ RUN chmod -R g+rwX /build/devfiles
 # Build registry, copying meta.yamls and index.json from builder
 # UPSTREAM: use RHEL7/RHSCL/httpd image so we're not required to authenticate with registry.redhat.io
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/rhscl/httpd-24-rhel7
-# FROM registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4-108.1575996463 AS registry
+# FROM registry.access.redhat.com/rhscl/httpd-24-rhel7:2.4-109 AS registry
 
 # DOWNSTREAM: use RHEL8/httpd
 # https://access.redhat.com/containers/?tab=tags#/registry.access.redhat.com/rhel8/httpd-24
-FROM registry.redhat.io/rhel8/httpd-24:1-70 AS registry
+FROM registry.redhat.io/rhel8/httpd-24:1-76 AS registry
 USER 0
 
 # BEGIN these steps might not be required
@@ -97,13 +97,14 @@ WORKDIR /var/www/html
 RUN mkdir -m 777 /var/www/html/devfiles
 COPY .htaccess README.md /var/www/html/
 COPY --from=builder /build/devfiles /var/www/html/devfiles
+# TODO CRW-590 COPY ./images /var/www/html/images
 COPY ./build/dockerfiles/rhel.entrypoint.sh ./build/dockerfiles/entrypoint.sh /usr/local/bin/
 RUN chmod g+rwX /usr/local/bin/entrypoint.sh /usr/local/bin/rhel.entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/local/bin/rhel.entrypoint.sh"]
 
 # Offline devfile registry build
-FROM builder AS offline-builder
+# FROM builder AS offline-builder
 # DO NOT USE FOR CRW (not tested yet)
 # Does not work in brew; need to run this online, cache in tarball and add to Brew
 # RUN ./cache_projects.sh devfiles resources && \
@@ -111,12 +112,13 @@ FROM builder AS offline-builder
 #     chmod -R g+rwX /build
 # DO NOT USE FOR CRW (not tested yet)
 
-FROM registry AS offline-registry
-COPY --from=offline-builder /build/devfiles /var/www/html/devfiles
-COPY --from=offline-builder /build/resources /var/www/html/resources
+# FROM registry AS offline-registry
+# COPY --from=offline-builder /build/devfiles /var/www/html/devfiles
+# COPY --from=offline-builder /build/resources /var/www/html/resources
 
-ENV SUMMARY="Red Hat CodeReady Workspaces devfile registry container" \
-    DESCRIPTION="Red Hat CodeReady Workspaces devile registry container" \
+# append Brew metadata here
+ENV SUMMARY="Red Hat CodeReady Workspaces devfileregistry container" \
+    DESCRIPTION="Red Hat CodeReady Workspaces devfileregistry container" \
     PRODNAME="codeready-workspaces" \
     COMPNAME="devfileregistry-rhel8"
 
