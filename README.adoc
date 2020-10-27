@@ -1,10 +1,13 @@
-# What's inside?
+# About this branch
 
-NOTE: the so-called master branch is deprecated and is no longer kept up to date. 
-
+[WARNING]
+====
+The so-called master branch is deprecated and is no longer kept up to date. 
 For the latest release, see the crw-2.y-rhel-8 branch with the largest y value.
+====
 
------
+
+# What's inside?
 
 This repository hosts CodeReady Workspaces assembly that mainly inherits Eclipse Che artifacts and repackages some of them:
 
